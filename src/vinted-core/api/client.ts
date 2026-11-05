@@ -16,7 +16,7 @@ import {
 import { RateLimiter } from "./rate-limiter";
 import { parseItem, parseSearchResponse, parseSeller, parseSellerProfile } from "../parsers/response-parser";
 import type { AuthSession, ClientOptions, SearchParams } from "../types";
-import { getRandomUserAgent, getBrowserHeaders, runtimeRequire } from "../auth/utils";
+import { getRandomUserAgent, getBrowserHeaders, runtimeRequire, VINTED_REQUEST_TIMEOUT_MS } from "../auth/utils";
 
 interface RequestOptions {
   method?: string;
@@ -429,7 +429,8 @@ export class VintedAPIClient {
       const fetchOptions: Record<string, unknown> = {
         headers,
         redirect: "follow",
-        method: options.method || "GET"
+        method: options.method || "GET",
+        signal: AbortSignal.timeout(VINTED_REQUEST_TIMEOUT_MS)
       };
 
       if (options.body !== undefined) {
@@ -549,7 +550,8 @@ export class VintedAPIClient {
     const response = await this.rateLimiter.execute(() =>
       fetch(url, {
         headers,
-        redirect: "follow"
+        redirect: "follow",
+        signal: AbortSignal.timeout(VINTED_REQUEST_TIMEOUT_MS)
       })
     );
 
@@ -588,6 +590,7 @@ export class VintedAPIClient {
           ...(cookieHeader ? { Cookie: cookieHeader } : {})
         },
         redirect: "follow",
+        signal: AbortSignal.timeout(VINTED_REQUEST_TIMEOUT_MS),
         ...(dispatcher ? { dispatcher } : {})
       } as RequestInit)
     );

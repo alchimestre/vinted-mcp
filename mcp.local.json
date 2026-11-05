@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "vinted": {
-      "command": "bunx",
-      "args": ["@andrijdavid/vinted-mcp@next"],
+      "type": "stdio",
+      "command": "node",
+      "args": ["dist/bundle.js"],
+      "enabled": false,
+      "timeout": 60000,
       "env": {
         "VINTED_MCP_TRANSPORT": "stdio"
       }

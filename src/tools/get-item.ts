@@ -1,16 +1,19 @@
 import type { VintedAPIClient } from "../vinted-core";
+import { parseVintedUrl } from "./url";
 
 export const getItemTool = {
   name: "get_item",
   description:
     "Get full details of a Vinted item by ID or URL. Returns price, description, photos and seller info. Vinted removed the item API, so this reads the public item page: it is slower than search and carries no view count or listing date.",
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
   inputSchema: {
     type: "object",
     properties: {
-      itemId: { type: "integer", description: "Vinted item ID" },
-      url: { type: "string", description: "Vinted item URL (alternative to itemId)" },
+      itemId: { type: "integer", minimum: 1, description: "Vinted item ID" },
+      url: { type: "string", minLength: 1, description: "Vinted item URL (alternative to itemId)" },
       country: { type: "string", description: "Country code", default: "fr" }
-    }
+    },
+    anyOf: [{ required: ["itemId"] }, { required: ["url"] }]
   }
 };
 
@@ -19,7 +22,7 @@ export async function handleGetItem(client: VintedAPIClient, args: any): Promise
   let country: string;
 
   if (args.url) {
-    const parsed = parseItemUrl(args.url);
+    const parsed = parseVintedUrl(args.url, "items");
     if (!parsed) {
       throw new Error(`Invalid Vinted item URL: ${args.url}`);
     }
@@ -64,36 +67,3 @@ export async function handleGetItem(client: VintedAPIClient, args: any): Promise
   );
 }
 
-export function parseItemUrl(url: string): { id: number; country: string } | null {
-  const match = url.match(/vinted\.(\w+(?:\.\w+)?)\/.*?(\d+)/);
-  if (!match) {
-    return null;
-  }
-
-  const domainMap: Record<string, string> = {
-    fr: "fr",
-    de: "de",
-    "co.uk": "uk",
-    it: "it",
-    es: "es",
-    nl: "nl",
-    pl: "pl",
-    pt: "pt",
-    be: "be",
-    at: "at",
-    lt: "lt",
-    cz: "cz",
-    sk: "sk",
-    hu: "hu",
-    ro: "ro",
-    hr: "hr",
-    fi: "fi",
-    dk: "dk",
-    se: "se"
-  };
-
-  return {
-    id: parseInt(match[2], 10),
-    country: domainMap[match[1]] || "fr"
-  };
-}

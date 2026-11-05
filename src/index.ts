@@ -1,3 +1,4 @@
+import Ajv from "ajv";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -21,6 +22,8 @@ import { handleSearchItems, searchItemsTool } from "./tools/search-items";
 import { VintedAPIClient } from "./vinted-core";
 
 const TOOLS = [searchItemsTool, getItemTool, getSellerTool, comparePricesTool, getTrendingTool, likeItemTool];
+const argumentValidator = new Ajv();
+const toolValidators = new Map(TOOLS.map((tool) => [tool.name, argumentValidator.compile(tool.inputSchema)]));
 const RESOURCES = [countriesResource, categoriesResource];
 const RESOURCE_TEMPLATES = [
   {
@@ -147,9 +150,16 @@ export function createServer(): Server {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name } = request.params;
     const args = request.params.arguments || {};
-    const apiClient = getClient();
 
     try {
+      const validate = toolValidators.get(name);
+      if (!validate) {
+        throw new Error(`Unknown tool: ${name}`);
+      }
+      if (!validate(args)) {
+        throw new Error(`Invalid arguments for ${name}: ${argumentValidator.errorsText(validate.errors)}`);
+      }
+      const apiClient = getClient();
       let result: string;
 
       switch (name) {

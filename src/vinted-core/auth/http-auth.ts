@@ -1,3 +1,4 @@
+import { VINTED_REQUEST_TIMEOUT_MS } from "./utils";
 import { TokenCache } from "./token-cache";
 import { getBaseUrl, getCountry } from "../models/country";
 import type { AuthSession } from "../types";
@@ -35,6 +36,7 @@ export class HttpAuth {
         "Accept-Language": `${countryInfo.language},en;q=0.5`
       },
       redirect: "follow",
+      signal: AbortSignal.timeout(VINTED_REQUEST_TIMEOUT_MS),
       ...(dispatcher ? { dispatcher } : {})
     } as RequestInit);
 
@@ -68,6 +70,7 @@ export class HttpAuth {
             "Cookie": cookieHeader,
             "X-CSRF-Token": csrfToken
           },
+          signal: AbortSignal.timeout(VINTED_REQUEST_TIMEOUT_MS),
           ...(dispatcher ? { dispatcher } : {})
         } as RequestInit);
 

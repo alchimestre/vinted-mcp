@@ -9,6 +9,28 @@ It also exposes resources for supported countries and category data.
 
 **Disclaimer**: This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Vinted, or any of its subsidiaries or its affiliates. The official Vinted website can be found at [vinted.com](https://www.vinted.com).
 
+## OMP: local, on demand
+
+Requires Node.js 22 or later. Build the checkout with the local development commands below.
+
+Add the `vinted` entry from `mcp.local.json` to `.omp/mcp.json`. Launch OMP from the checkout so `dist/bundle.js` resolves.
+
+For user-level configuration, set `args[0]` to the absolute bundle path and `cwd` to the checkout. Keep machine-specific paths outside this repository.
+
+| OMP command | Effect |
+| --- | --- |
+| `/mcp enable vinted` | Start the local server and load its six tools |
+| `/mcp test vinted` | Check the connection and tool discovery |
+| `/mcp disable vinted` | Stop the server and remove its tools |
+
+Enablement persists across sessions. Disable after use to prevent startup loading.
+
+Search uses anonymous HTTP authentication by default. Favourites and seller wardrobes require a logged-in session.
+
+Tool arguments are validated against their advertised schemas. Item and seller URLs must use HTTPS, a supported Vinted host, and the matching resource path.
+
+Each upstream HTTP fetch has a 30-second timeout. Retries and multi-country comparisons can take longer.
+
 ## Client support
 
 This server works with MCP clients that support local `stdio` servers.
@@ -283,7 +305,7 @@ Supported countries: `fr`, `de`, `uk`, `it`, `es`, `nl`, `pl`, `pt`, `be`, `at`,
 ## Local development
 
 ```bash
-npm install
+npm ci --ignore-scripts
 npm run build
 npm run bundle
 npm start

@@ -4,17 +4,21 @@ export const comparePricesTool = {
   name: "compare_prices",
   description:
     "Compare prices for a search query across multiple Vinted countries. Great for finding arbitrage opportunities.",
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
   inputSchema: {
     type: "object",
     properties: {
-      query: { type: "string", description: "Search keywords to compare" },
+      query: { type: "string", pattern: "\\S", description: "Search keywords to compare" },
       countries: {
         type: "array",
         items: { type: "string" },
+        minItems: 1,
+        maxItems: 19,
+        uniqueItems: true,
         description: "Country codes to compare (default: fr, de, it, es, nl, pl)",
         default: ["fr", "de", "it", "es", "nl", "pl"]
       },
-      limit: { type: "integer", description: "Items per country to analyse", default: 20 }
+      limit: { type: "integer", minimum: 1, maximum: 100, description: "Items per country to analyse", default: 20 }
     },
     required: ["query"]
   }

@@ -28,6 +28,7 @@ yarn-error.log*
 pnpm-debug.log*
 .mcpregistry*
 *.log
+.omp/mcp.json
 
 # Editor, temp, and AI assistant files
 *.swp

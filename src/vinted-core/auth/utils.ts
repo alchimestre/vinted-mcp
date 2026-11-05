@@ -1,3 +1,5 @@
+export const VINTED_REQUEST_TIMEOUT_MS = 30_000;
+
 export function parseSetCookieHeaders(headers: Headers): string[] {
   const getSetCookie = (headers as any).getSetCookie;
   if (typeof getSetCookie === "function") {

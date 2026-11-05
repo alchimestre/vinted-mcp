@@ -1,3 +1,4 @@
+import { VINTED_REQUEST_TIMEOUT_MS } from "./utils";
 import { TokenCache } from "./token-cache";
 import { browserArgs } from "./playwright-auth";
 import { getBaseUrl, getCountry } from "../models/country";
@@ -130,10 +131,11 @@ async function openContext(country: string, headless: boolean): Promise<any> {
 
 async function fetchCurrentUser(page: any, country: string): Promise<CurrentUser | null> {
   try {
-    return await page.evaluate(async (base: string) => {
-      const res = await fetch(`${base}/api/v2/users/current`, {
+    return await page.evaluate(async (params: { baseUrl: string; timeoutMs: number }) => {
+      const res = await fetch(`${params.baseUrl}/api/v2/users/current`, {
         credentials: "include",
-        headers: { Accept: "application/json" }
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(params.timeoutMs)
       });
 
       if (!res.ok) {
@@ -147,7 +149,7 @@ async function fetchCurrentUser(page: any, country: string): Promise<CurrentUser
       }
 
       return { id: user.id, username: user.login || user.username || "" };
-    }, getBaseUrl(country));
+    }, { baseUrl: getBaseUrl(country), timeoutMs: VINTED_REQUEST_TIMEOUT_MS });
   } catch {
     // Page navigating or closed mid-poll; treat as not-yet-logged-in.
     return null;

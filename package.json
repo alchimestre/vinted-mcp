@@ -10,15 +10,21 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-      "bundle": "npx --yes esbuild src/bin/cli.ts --bundle --platform=node --target=node22 --outfile=dist/bundle.js --format=cjs --external:@modelcontextprotocol/sdk --external:playwright --external:playwright-core --external:playwright-extra --external:puppeteer-extra-plugin-stealth",
+    "bundle": "esbuild src/bin/cli.ts --bundle --platform=node --target=node22 --outfile=dist/bundle.js --format=cjs --external:@modelcontextprotocol/sdk --external:playwright --external:playwright-core --external:playwright-extra --external:puppeteer-extra-plugin-stealth",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true }); require('fs').rmSync('dist-ts', { recursive: true, force: true });\"",
     "start": "node dist/bundle.js",
     "test": "node --test tests/*.test.cjs",
     "publish:canary:local": "bash scripts/publish-canary-local.sh"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "ajv": "8.20.0"
   },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "npm@11.20.0",
   "keywords": [
     "vinted",
     "mcp",

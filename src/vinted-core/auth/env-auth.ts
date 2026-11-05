@@ -1,3 +1,4 @@
+import { VINTED_REQUEST_TIMEOUT_MS } from "./utils";
 import { TokenCache } from "./token-cache";
 import type { AuthSession } from "../types";
 import { getBaseUrl } from "../models/country";
@@ -97,7 +98,8 @@ export class EnvAuth {
           Cookie: cookieHeader,
           ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {})
         },
-        body: JSON.stringify({ grant_type: "refresh_token", refresh_token: refreshToken })
+        body: JSON.stringify({ grant_type: "refresh_token", refresh_token: refreshToken }),
+        signal: AbortSignal.timeout(VINTED_REQUEST_TIMEOUT_MS)
       });
 
       if (!res.ok) {

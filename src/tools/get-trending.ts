@@ -4,13 +4,14 @@ export const getTrendingTool = {
   name: "get_trending",
   description:
     "Find recently listed Vinted items ranked by engagement (favourites, then views). Note: the catalogue API no longer returns listing timestamps or view counts, so the ranking is coarse and favourite counts are often 0 on promoted results.",
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
   inputSchema: {
     type: "object",
     properties: {
       query: { type: "string", description: "Search keywords (optional)" },
       country: { type: "string", description: "Country code", default: "fr" },
-      categoryId: { type: "integer", description: "Category ID filter" },
-      limit: { type: "integer", description: "Max items to return", default: 20 }
+      categoryId: { type: "integer", minimum: 1, description: "Category ID filter" },
+      limit: { type: "integer", minimum: 1, maximum: 100, description: "Max items to return", default: 20 }
     }
   }
 };

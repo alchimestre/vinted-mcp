@@ -1,7 +1,7 @@
 import { TokenCache } from "./token-cache";
 import { getBaseUrl, getCountry } from "../models/country";
 import type { AuthSession } from "../types";
-import { defaultDesktopUserAgent, runtimeRequire } from "./utils";
+import { VINTED_REQUEST_TIMEOUT_MS, defaultDesktopUserAgent, runtimeRequire } from "./utils";
 
 type OptionalChromium = {
   use?: (plugin: unknown) => void;
@@ -54,13 +54,14 @@ export class CookieFactory {
       }
 
       const csrfToken = cookies.csrf_token || cookies._csrf_token || "";
-      const response = await page.evaluate(async (params: { baseUrl: string; csrfToken: string }) => {
+      const response = await page.evaluate(async (params: { baseUrl: string; csrfToken: string; timeoutMs: number }) => {
         const res = await fetch(`${params.baseUrl}/api/v2/users/current`, {
           headers: {
             Accept: "application/json",
             "X-CSRF-Token": params.csrfToken
           },
-          credentials: "include"
+          credentials: "include",
+          signal: AbortSignal.timeout(params.timeoutMs)
         });
 
         if (!res.ok) {
@@ -68,7 +69,7 @@ export class CookieFactory {
         }
 
         return { data: await res.json() };
-      }, { baseUrl, csrfToken });
+      }, { baseUrl, csrfToken, timeoutMs: VINTED_REQUEST_TIMEOUT_MS });
 
       let accessToken = "";
       if (response && typeof response === "object" && "data" in response && response.data) {

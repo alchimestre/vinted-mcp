@@ -1,21 +1,24 @@
 import type { VintedAPIClient } from "../vinted-core";
+import { parseVintedUrl } from "./url";
 
 export const getSellerTool = {
   name: "get_seller",
   description: "Get seller profile, stats, recent reviews and recent items from Vinted. Rating is on a 0-5 scale.",
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
   inputSchema: {
     type: "object",
     properties: {
-      sellerId: { type: "integer", description: "Vinted seller/user ID" },
-      url: { type: "string", description: "Vinted seller profile URL (alternative to sellerId)" },
+      sellerId: { type: "integer", minimum: 1, description: "Vinted seller/user ID" },
+      url: { type: "string", minLength: 1, description: "Vinted seller profile URL (alternative to sellerId)" },
       country: { type: "string", description: "Country code", default: "fr" },
       includeItems: {
         type: "boolean",
         description: "Include the seller's listings. Vinted returns an empty wardrobe to anonymous callers, so this needs a logged-in session (vinted-mcp login).",
         default: true
       },
-      itemLimit: { type: "integer", description: "Max items to include", default: 20 }
-    }
+      itemLimit: { type: "integer", minimum: 1, maximum: 100, description: "Max items to include", default: 20 }
+    },
+    anyOf: [{ required: ["sellerId"] }, { required: ["url"] }]
   }
 };
 
@@ -24,7 +27,7 @@ export async function handleGetSeller(client: VintedAPIClient, args: any): Promi
   let country: string;
 
   if (args.url) {
-    const parsed = parseSellerUrl(args.url);
+    const parsed = parseVintedUrl(args.url, "member");
     if (!parsed) {
       throw new Error(`Invalid Vinted seller URL: ${args.url}`);
     }
@@ -71,36 +74,3 @@ export async function handleGetSeller(client: VintedAPIClient, args: any): Promi
   return JSON.stringify(result, null, 2);
 }
 
-function parseSellerUrl(url: string): { id: number; country: string } | null {
-  const match = url.match(/vinted\.(\w+(?:\.\w+)?)\/member\/(\d+)/);
-  if (!match) {
-    return null;
-  }
-
-  const domainMap: Record<string, string> = {
-    fr: "fr",
-    de: "de",
-    "co.uk": "uk",
-    it: "it",
-    es: "es",
-    nl: "nl",
-    pl: "pl",
-    pt: "pt",
-    be: "be",
-    at: "at",
-    lt: "lt",
-    cz: "cz",
-    sk: "sk",
-    hu: "hu",
-    ro: "ro",
-    hr: "hr",
-    fi: "fi",
-    dk: "dk",
-    se: "se"
-  };
-
-  return {
-    id: parseInt(match[2], 10),
-    country: domainMap[match[1]] || "fr"
-  };
-}
